@@ -1,0 +1,143 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: PURCHASE API
+  description: A API that realize purchase orders
+  license:
+    name: MIT
+paths:
+  /purchase-orders:
+    get:
+      summary: List all purchase orders
+      operationId: listpurchaseorder
+      parameters:
+        - name: limit
+            in: query
+            description: How many items to return at one time (max 100)
+            required: false
+            schema:
+              type: integer
+              format: int32
+        - name: userid
+            in: query
+            description: Owner of the purchase orders
+            required: true
+            schema:
+              type: integer
+              format: int32
+          responses:
+            '200':
+              description: A paged array of purchase orders
+              headers:
+                x-next:
+                  description: A link to the next page of responses
+                schema:
+                  type: string
+              content:
+                application/json:    
+                  schema:
+                    $ref: "#/components/schemas/PurchaseOrders"
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+    post:
+      summary: Create a purchase order
+      operationId: createPurchaseOrder
+      tags:
+        - purchaseorders
+      responses:
+        '201':
+          description: Null response
+        '400':
+          description: Payment error
+        '404':
+          description: Products not available in providers
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /purchase-orders/{purchaseOrderId}:
+    get:
+      summary: Info for a specific purchase order
+      operationId: showPurchaseOrderById
+      tags:
+        - purchaseorders
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          description: The id of the purchase order to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrder"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    PurchaseOrder:
+      type: object
+      required:
+        - userid
+        - products
+        - paymentdata
+      properties:
+        userid:
+          type: integer
+          format: int64
+        products:
+          type: array
+          $ref: "#/components/schemas/Product"
+        paymentdata:
+          type: object
+          $ref: "#/components/schemas/PaymentData"
+    PurchaseOrders:
+      type: array
+      items:
+        $ref: "#/components/schemas/PurchaseOrder"
+    Product:
+      type: object
+      properties:
+        id: 
+          type: integer
+        value:
+          type: integer
+    PaymentData: 
+      properties:
+        cardnumber:
+          type: integer
+        cardname:
+          type: name
+        expirationdate:
+          type: date
+        cvv:
+          type: integer
+        cpf:
+          type: integer
+        installments:
+          type: integer
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
