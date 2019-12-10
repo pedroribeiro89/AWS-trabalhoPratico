@@ -51,7 +51,7 @@ paths:
       responses:
         '201':
           description: Null response
-        '400':
+        '401':
           description: Payment error
         '404':
           description: Products not available in providers
