@@ -2,37 +2,114 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: PURCHASE API
-  description: A API that realize purchase orders
+  description: A API to purchase orders
   license:
     name: MIT
 paths:
+
+  /products:
+    get:
+      summary: List all products
+      operationId: listproducts
+      tags:
+        - Products
+      parameters:
+        - name: limit
+          in: query
+          description: How many products to return at one time (max 100)
+          required: false
+          schema:
+              type: integer
+              format: int32
+        - name: avaiable
+          in: query
+          description: return products avaiable or not
+          required: false
+          schema:
+              type: boolean
+      responses:
+            '200':
+              description: A paged array of products
+              headers:
+                x-next:
+                  description: A link to the next page of responses
+                  schema:
+                    type: string
+              content:
+                application/json:    
+                  schema:
+                    $ref: ""
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+
+
+  /products/{productID}:
+    get:
+      summary: show details of a product
+      operationId: teste
+      tags:
+        - Products
+      parameters:
+        - name: productID
+          in: path
+          description: product ID
+          required: true
+          schema:
+              type: integer
+              format: int32
+      responses:
+            '200':
+              description: A paged array of products
+              headers:
+                x-next:
+                  description: A link to the next page of responses
+                  schema:
+                    type: string
+              content:
+                application/json:    
+                  schema:
+                    $ref: ""
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+
+
   /purchase-orders:
     get:
       summary: List all purchase orders
       operationId: listpurchaseorder
+      tags:
+        - Purchase Orders
       parameters:
-        - name: limit
-            in: query
-            description: How many items to return at one time (max 100)
-            required: false
-            schema:
-              type: integer
-              format: int32
         - name: userid
-            in: query
-            description: Owner of the purchase orders
-            required: true
-            schema:
+          in: path
+          description: Owner of the purchase orders
+          required: true
+          schema:
               type: integer
               format: int32
-          responses:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+              type: integer
+              format: int32
+      responses:
             '200':
               description: A paged array of purchase orders
               headers:
                 x-next:
                   description: A link to the next page of responses
-                schema:
-                  type: string
+                  schema:
+                    type: string
               content:
                 application/json:    
                   schema:
@@ -43,30 +120,14 @@ paths:
                 application/json:
                   schema:
                     $ref: "#/components/schemas/Error"
-    post:
-      summary: Create a purchase order
-      operationId: createPurchaseOrder
-      tags:
-        - purchaseorders
-      responses:
-        '201':
-          description: Null response
-        '400':
-          description: Payment error
-        '404':
-          description: Products not available in providers
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+                    
+    
   /purchase-orders/{purchaseOrderId}:
     get:
       summary: Info for a specific purchase order
       operationId: showPurchaseOrderById
       tags:
-        - purchaseorders
+        - Purchase Orders
       parameters:
         - name: purchaseOrderId
           in: path
@@ -87,6 +148,95 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+                
+  /purchase-order/{userId}:
+    post:
+      summary: Create a purchase order
+      operationId: createPurchaseOrder
+      tags:
+        - Purchase Orders
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The id of the purchase order to retrieve
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '404':
+          description: Products not available in providers
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+    get:
+      summary: show a purchase order by userID
+      operationId: showPurchaseOrder
+      tags:
+        - Purchase Orders
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The id of the purchase order to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ok
+        '401':
+          description: Unauthorized
+        '404':
+          description: Products not available in providers
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+                
+  /purchase-order/{purchaseOrderId}/{productID}:
+    post:
+      summary: Insert a product in a purchaseOrder
+      operationId: InsertProductinPurchaseOrder
+      tags:
+        - Purchase Orders
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          description: The id of the purchase order to retrieve
+          schema:
+            type: string
+        - name: productID
+          in: path
+          description: product ID
+          required: true
+          schema:
+              type: integer
+              format: int32
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '404':
+          description: Products not available in providers
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"  
+                
 components:
   schemas:
     PurchaseOrder:
@@ -101,6 +251,8 @@ components:
           format: int64
         products:
           type: array
+          items:
+            type: string
           $ref: "#/components/schemas/Product"
         paymentdata:
           type: object
@@ -114,16 +266,20 @@ components:
       properties:
         id: 
           type: integer
+        description:
+          type: string
         value:
-          type: integer
+          type: number
+        estoque:
+          type: number
     PaymentData: 
       properties:
         cardnumber:
           type: integer
         cardname:
-          type: name
+          type: string
         expirationdate:
-          type: date
+          type: string
         cvv:
           type: integer
         cpf:
